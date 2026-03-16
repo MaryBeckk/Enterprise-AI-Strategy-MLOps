@@ -1,0 +1,38 @@
+name: Enterprise MLOps Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run Model Training & Validation
+      run: |
+        python src/ml_pipeline/train.py
+        
+    - name: Generate Strategic ROI Report
+      run: |
+        python src/strategy/roi_evaluator.py --tp 150 --fp 10 --fn 2 > roi_report.txt
+        cat roi_report.txt
+        
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: strategy-report
+        path: roi_report.txt
